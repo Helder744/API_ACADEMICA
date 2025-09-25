@@ -1,0 +1,18 @@
+**** Descritivo de consumo das rota da API ACADEMICA ****
+
+#### Consultar alunos por curso (todos) ####
+
+http://localhost:8000/curso/alunos?codcurso=06
+http://localhost:8000/curso/alunos?nomecurso=Administração
+http://localhost:8000/curso/alunos?nomecurso=DIRETO
+
+#### Consultar alunos por curso (idturmadisc) ####
+
+http://localhost:8000/alunos/turma/325
+
+#### Consultar disciplinas do alunos por periodo letivo (aluno/MATRICULA_ALUNO/disciplinas?idperlet=81(ID PERIDO LETIDO)) ####
+
+http://localhost:8000/aluno/23250162/disciplinas?idperlet=81
+
+#### Pagina inicial API ACADEMICA ####
+http://localhost:8000/docs#/default
