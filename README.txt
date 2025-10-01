@@ -16,3 +16,6 @@ http://localhost:8000/aluno/23250162/disciplinas?idperlet=81
 
 #### Pagina inicial API ACADEMICA ####
 http://localhost:8000/docs#/default
+
+#### Consultar total de alunos por curso no periodo letivo (todos NO TOTVS Educacional) ####
+http://localhost:8000/curso/alunos/quantidade?codcurso={?}&idperlet={?}
