@@ -12,10 +12,10 @@ app = FastAPI(title="API Acadêmica", version="1.0", description="API para consu
 def get_connection():
     conn_str = (
         "DRIVER={ODBC Driver 17 for SQL Server};"
-        "SERVER=10.1.2.98;"
-        "DATABASE=corpore;"
-        "UID=sa;"
-        "PWD=vencedores;"
+        "SERVER=;"
+        "DATABASE=;"
+        "UID=;"
+        "PWD=;"
     )
     return pyodbc.connect(conn_str)
 
