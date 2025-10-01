@@ -1,6 +1,6 @@
 **** Descritivo de consumo das rota da API ACADEMICA ****
 
-#### Consultar alunos por curso (todos) ####
+#### Consultar alunos por curso (todos NO TOTVS Educacional) ####
 
 http://localhost:8000/curso/alunos?codcurso=06
 http://localhost:8000/curso/alunos?nomecurso=Administração
