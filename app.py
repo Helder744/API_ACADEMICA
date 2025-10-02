@@ -279,25 +279,26 @@ def get_aluno(
         with get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                SELECT 
-                    DISTINCT
-                    CASE WHEN SHABILITACAOALUNO.CODSTATUS = '1' THEN 'MATRICULADO' END AS SIT_CURSO,
-                    SALUNO.RA,
-                    PPESSOA.NOME,
-                    PPESSOA.CPF,
-                    SCURSO.CODCURSO,
-                    SCURSO.NOME AS CURSO,
-                    CASE WHEN SMATRICPL.CODSTATUS = '1' THEN 'MATRICULADO' END AS SIT_PERIODO_LETIVO,
-                    STURMADISC.IDPERLET,
-                    SMATRICPL.CODTURMA,
-                    SUBSTRING (SMATRICPL.CODTURMA, 1,5) AS CODTURMA_REDUZIDO,
-                    STURMADISC.CODDISC,
-                    SMATRICULA.IDTURMADISC,
-                    CASE 
-                        WHEN SMATRICULA.CODSTATUS = '13' THEN 'CURSANDO'
-                        WHEN SMATRICULA.CODSTATUS = '3'  THEN 'MATRICULADO DEP'
-                        WHEN SMATRICULA.CODSTATUS = '30' THEN 'REPETENTE C/ COBRANCA'
-                    END AS SITUACAO_DISCIPLINA
+             SELECT 
+              DISTINCT
+              CASE WHEN SHABILITACAOALUNO.CODSTATUS = '1' THEN 'MATRICULADO' END AS SIT_CURSO,
+	          SALUNO.RA,
+	          PPESSOA.NOME,
+              PPESSOA.CPF,
+              SCURSO.CODCURSO,
+              SCURSO.NOME AS CURSO,
+	          CASE WHEN SMATRICPL.CODSTATUS = '1' THEN 'MATRICULADO' END AS SIT_PERIODO_LETIVO,
+              STURMADISC.IDPERLET,
+              SMATRICPL.CODTURMA,
+	          SUBSTRING (SMATRICPL.CODTURMA, 1,5) AS CODTURMA_REDUZIDO,
+	          SCURSO.NOME AS CURSO,
+	          STURMADISC.CODDISC,
+	          SDISCIPLINA.NOME AS DISCIPLINA,
+	          SMATRICULA.IDTURMADISC,
+	          CASE WHEN SMATRICULA.CODSTATUS = '13' THEN 'CURSANDO'
+	          WHEN SMATRICULA.CODSTATUS = '3' THEN 'MATRICULADO DEP'
+		      WHEN SMATRICULA.CODSTATUS = '30' THEN 'REPETENTE C/ COBRANCA'
+              END SITUACAO_DISCIPLINA
                 FROM SMATRICULA
                 INNER JOIN SALUNO (NOLOCK) 
                     ON SALUNO.RA = SMATRICULA.RA
@@ -317,6 +318,8 @@ def get_aluno(
                     ON SMATRICPL.RA = SMATRICULA.RA
                     AND SMATRICPL.IDHABILITACAOFILIAL = SMATRICULA.IDHABILITACAOFILIAL
                     AND SMATRICPL.IDPERLET = SMATRICULA.IDPERLET
+                INNER JOIN SDISCIPLINA (NOLOCK) 
+                    ON STURMADISC.CODDISC = SDISCIPLINA.CODDISC           
                 WHERE SCURSO.CODCURSO = ?
                   AND STURMADISC.IDPERLET = ?
                   AND SALUNO.RA = ?
@@ -351,6 +354,7 @@ def get_aluno(
                     "CODTURMA_REDUZIDO": row.CODTURMA_REDUZIDO,
                     "IDTURMADISC": row.IDTURMADISC,
                     "CODDISC": row.CODDISC,
+                    "NOME": row.DISCIPLINA,
                     "SITUACAO_DISCIPLINA": row.SITUACAO_DISCIPLINA
                 })
 
