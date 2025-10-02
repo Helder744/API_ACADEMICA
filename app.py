@@ -354,7 +354,7 @@ def get_aluno(
                     "CODTURMA_REDUZIDO": row.CODTURMA_REDUZIDO,
                     "IDTURMADISC": row.IDTURMADISC,
                     "CODDISC": row.CODDISC,
-                    "NOME": row.DISCIPLINA,
+                    "DISCIPLINA": row.DISCIPLINA,
                     "SITUACAO_DISCIPLINA": row.SITUACAO_DISCIPLINA
                 })
 
