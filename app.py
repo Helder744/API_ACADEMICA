@@ -1,4 +1,4 @@
-﻿from fastapi import FastAPI, HTTPException, Query, Path
+from fastapi import FastAPI, HTTPException, Query, Path
 import pyodbc
 
 # ==============================
@@ -266,3 +266,95 @@ def get_quantidade_alunos_por_curso(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erro inesperado: {str(e)}")
+# ==============================
+# ROTA: CONSULTA ALUNO POR RA, IDPERLET e CODCURSO
+# ==============================
+@app.get("/aluno", summary="Dados do aluno com disciplinas")
+def get_aluno(
+    ra: str = Query(..., description="RA do aluno"),
+    idperlet: str = Query(..., description="ID do período letivo"),
+    codcurso: str = Query(..., description="Código do curso")
+):
+    try:
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT 
+                    DISTINCT
+                    CASE WHEN SHABILITACAOALUNO.CODSTATUS = '1' THEN 'MATRICULADO' END AS SIT_CURSO,
+                    SALUNO.RA,
+                    PPESSOA.NOME,
+                    PPESSOA.CPF,
+                    SCURSO.CODCURSO,
+                    SCURSO.NOME AS CURSO,
+                    CASE WHEN SMATRICPL.CODSTATUS = '1' THEN 'MATRICULADO' END AS SIT_PERIODO_LETIVO,
+                    STURMADISC.IDPERLET,
+                    SMATRICPL.CODTURMA,
+                    SUBSTRING (SMATRICPL.CODTURMA, 1,5) AS CODTURMA_REDUZIDO,
+                    STURMADISC.CODDISC,
+                    SMATRICULA.IDTURMADISC,
+                    CASE 
+                        WHEN SMATRICULA.CODSTATUS = '13' THEN 'CURSANDO'
+                        WHEN SMATRICULA.CODSTATUS = '3'  THEN 'MATRICULADO DEP'
+                        WHEN SMATRICULA.CODSTATUS = '30' THEN 'REPETENTE C/ COBRANCA'
+                    END AS SITUACAO_DISCIPLINA
+                FROM SMATRICULA
+                INNER JOIN SALUNO (NOLOCK) 
+                    ON SALUNO.RA = SMATRICULA.RA
+                INNER JOIN PPESSOA (NOLOCK) 
+                    ON PPESSOA.CODIGO = SALUNO.CODPESSOA
+                INNER JOIN STURMADISC (NOLOCK) 
+                    ON STURMADISC.IDHABILITACAOFILIAL = SMATRICULA.IDHABILITACAOFILIAL
+                    AND STURMADISC.IDTURMADISC = SMATRICULA.IDTURMADISC
+                INNER JOIN SHABILITACAOFILIAL (NOLOCK) 
+                    ON STURMADISC.IDHABILITACAOFILIAL = SHABILITACAOFILIAL.IDHABILITACAOFILIAL
+                INNER JOIN SCURSO (NOLOCK) 
+                    ON SCURSO.CODCURSO = SHABILITACAOFILIAL.CODCURSO
+                INNER JOIN SHABILITACAOALUNO (NOLOCK) 
+                    ON SHABILITACAOALUNO.RA = SMATRICULA.RA
+                    AND SHABILITACAOALUNO.IDHABILITACAOFILIAL = SMATRICULA.IDHABILITACAOFILIAL
+                INNER JOIN SMATRICPL (NOLOCK) 
+                    ON SMATRICPL.RA = SMATRICULA.RA
+                    AND SMATRICPL.IDHABILITACAOFILIAL = SMATRICULA.IDHABILITACAOFILIAL
+                    AND SMATRICPL.IDPERLET = SMATRICULA.IDPERLET
+                WHERE SCURSO.CODCURSO = ?
+                  AND STURMADISC.IDPERLET = ?
+                  AND SALUNO.RA = ?
+                  AND SMATRICPL.CODSTATUS = '1'
+                  AND SMATRICULA.CODSTATUS NOT IN ('16', '6')
+                  AND SHABILITACAOALUNO.CODSTATUS NOT IN ('12','15','18','21','22','24')
+                ORDER BY PPESSOA.NOME
+            """, (codcurso, idperlet, ra))
+
+            rows = cursor.fetchall()
+
+            if not rows:
+                return {"erro": "Aluno não encontrado"}
+
+            # Dados gerais do aluno (primeira linha)
+            aluno = {
+                "RA": rows[0].RA,
+                "NOME": rows[0].NOME,
+                "CPF": rows[0].CPF,
+                "CODCURSO": rows[0].CODCURSO,
+                "CURSO": rows[0].CURSO,
+                "SIT_CURSO": rows[0].SIT_CURSO,
+                "IDPERLET": rows[0].IDPERLET,
+                "SIT_PERIODO_LETIVO": rows[0].SIT_PERIODO_LETIVO,
+                "DISCIPLINAS": []
+            }
+
+            # Preenche disciplinas
+            for row in rows:
+                aluno["DISCIPLINAS"].append({
+                    "CODTURMA": row.CODTURMA,
+                    "CODTURMA_REDUZIDO": row.CODTURMA_REDUZIDO,
+                    "IDTURMADISC": row.IDTURMADISC,
+                    "CODDISC": row.CODDISC,
+                    "SITUACAO_DISCIPLINA": row.SITUACAO_DISCIPLINA
+                })
+
+            return aluno
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
