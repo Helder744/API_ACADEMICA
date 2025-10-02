@@ -19,3 +19,6 @@ http://localhost:8000/docs#/default
 
 #### Consultar total de alunos por curso no periodo letivo (todos NO TOTVS Educacional) ####
 http://localhost:8000/curso/alunos/quantidade?codcurso={?}&idperlet={?}
+
+#### Consultar de alunos por curso no periodo letivo e disciplinas (todos NO TOTVS Educacional) ####
+http://localhost:8000/aluno?ra=22290003&idperlet=82&codcurso=29
